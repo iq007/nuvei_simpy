@@ -1,0 +1,217 @@
+1. Generate me a json to describe a simpy environment which simulates a payment service provider payment processing. 
+The environment is made up of several web services which in turn depend on resources such as internal resources such as databases, rabbitMQs 3rd party services such as Paypal, Alipay, Paysafecard. 
+The services are running on servers using CPU, RAM and discs which act also as resources and also need network connectivity, which can fail or have latency.
+We need to be able to assign reliability to these resources so we can simulate failures and see how the system reacts to them.
+Also add monitoring services such as Dynatrace and 24x7 which can detect issues and generate alerts. Later on we need to see if we can corelate these alerts with the failures.
+Add human resources as groups of people such as a NOC team, DBA team, Networking Team, Application Team, each with its own response and resolution time. 
+The json needs to be constructed in such way to be easily parseble in python to generate simpy environment, resources and processes and run it to create a simulation.
+The resources should be in single array and each resource should have a type from the one described above (monitoring, web service, database, server etc.)
+The resources should list its dependecienies as a subarray.
+{
+    "environment": {
+        "resources": [
+            {
+                "name": "GlobalApi",
+                "type": "web-service",
+                "endpoint": "globalapi.smart2pay.com",
+                "dependencies": [
+                    "HPPDB",
+                    "Europay",
+                    "Network",
+                    "Server-1"
+                ],
+                "failure_rate": 0.01,
+                "failure_min_duration": 1,
+                "failure_max_duration": 60,
+                "latency_min": 0.01,
+                "latency_max": 3
+            },
+            {
+                "name": "Europay",
+                "type": "web-service",
+                "endpoint": "globalep1.smart2pay.com",
+                "dependencies": [
+                    "EuropayDB",
+                    "Alipay"
+                ],
+                "soft_dependencies": [
+                    "Alipay",
+                    "Paypal",
+                    "Paysafecard"
+                ],
+                "failure_rate": 0.01,
+                "failure_min_duration": 1,
+                "failure_max_duration": 60,
+                "latency_min": 0.01,
+                "latency_max": 3
+            },
+            {
+                "name": "HPPDB",
+                "type": "database",
+                "dependencies": [
+                    "Server-2"
+                ],
+                "failure_rate": 0.01,
+                "failure_min_duration": 1,
+                "failure_max_duration": 30,
+                "latency_min": 0.01,
+                "latency_max": 0.1
+            },
+            {
+                "name": "EuropayDB",
+                "type": "database",
+                "dependencies": [
+                    "Server-2"
+                ],
+                "failure_rate": 0.03,
+                "failure_min_duration": 1,
+                "failure_max_duration": 30,
+                "latency_min": 0.01,
+                "latency_max": 0.20
+            },
+            {
+                "name": "Paypal",
+                "type": "provider",
+                "dependencies": [],
+                "failure_rate": 0.03,
+                "failure_min_duration": 1,
+                "failure_max_duration": 30,
+                "latency_min": 0.2,
+                "latency_max": 2
+            },
+            {
+                "name": "Alipay",
+                "type": "provider",
+                "dependencies": [],
+                "failure_rate": 0.03,
+                "failure_min_duration": 1,
+                "failure_max_duration": 30,
+                "latency_min": 0.2,
+                "latency_max": 2
+            },
+            {
+                "name": "Paysafecard",
+                "type": "provider",
+                "dependencies": [],
+                "failure_rate": 0.03,
+                "failure_min_duration": 1,
+                "failure_max_duration": 30,
+                "latency_min": 0.2,
+                "latency_max": 2
+            },
+            {
+                "name": "Server-1",
+                "type": "server",
+                "dependencies": [],
+                "failure_rate": 0.001,
+                "failure_min_duration": 1,
+                "failure_max_duration": 300,
+                "latency_min": 0.2,
+                "latency_max": 0.2
+            },
+            {
+                "name": "Server2",
+                "type": "server",
+                "dependencies": [],
+                "failure_rate": 0.001,
+                "failure_min_duration": 1,
+                "failure_max_duration": 300,
+                "latency_min": 0.2,
+                "latency_max": 0.2
+            },
+            {
+                "name": "Network",
+                "type": "network",
+                "dependencies": [],
+                "failure_rate": 0.001,
+                "failure_min_duration": 1,
+                "failure_max_duration": 5,
+                "latency_min": 0.01,
+                "latency_max": 0.1
+            },
+            
+            {
+                "name": "NOC Team",
+                "type": "human",
+                "dependencies": []
+            },
+            {
+                "name": "DBA Team",
+                "type": "human",
+                "dependencies": []
+            },
+            {
+                "name": "Networking Team",
+                "type": "human",
+                "dependencies": []
+            },
+            {
+                "name": "Application Team",
+                "type": "human",
+                "dependencies": []
+            }
+        ],
+        "resource_types": [
+            {
+                "type": "web-service",
+                "exceptions": [
+                        "SQLException: Cannot connect to DB",
+                        "NetworkException: SSL handshake failed",
+                        "TimeoutException: RabbitMQ connection timeout"
+                ]
+            },
+            {
+                "type": "database",
+                "exceptions": [
+                        "Table lock"
+                ]
+            },
+            {
+                "type": "server",
+                "exceptions": [
+                        "Server down"
+                ]
+            },
+            {
+                "type": "resource",
+                "exceptions": [
+                        "Network down"
+                ]
+            },
+            {
+                "type": "monitoring",
+                "exceptions": [
+                        "Dynatrace down"
+                ]
+            },
+            {"type": "human",
+                "exceptions": [
+                        "Does not answer"
+                ]
+            }
+    ]},
+    "simulation": {
+        "monitors": [
+            {
+                "name": "Dynatrace",
+                "type": "monitoring",
+                "dependencies": []
+            },
+            {
+                "name": "24x7",
+                "type": "monitoring",
+                "dependencies": []
+            },
+        ],
+        "transactions": {
+            "Alipay": 10000,
+            "Paypal": 200000,
+            "Paysafecard": 10000
+        }
+    }
+}
+
+
+
+
+2. Given the above array please write me a python program that transform the json into running python code using simpy package to create a simulation based on transaction numbers. introduce random failures and latencies and log all events. if one resource fails all the resources that are dependent on that resource also fail.
