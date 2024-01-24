@@ -7,6 +7,9 @@ import uuid
 from env_simulator.utils.sim_logger import SimLogger
 from dotenv import load_dotenv
 import os
+import nuvei.services.globalpay as globalpay
+import nuvei.infrastructure.transaction_repository as transaction_repository
+from nuvei.utils.nuvei_logger import NuveiLogger
 
 load_dotenv()  # take environment variables from .env.
 
@@ -19,12 +22,20 @@ class Environment:
         self.simulation = simulation
         self.env = simpy.Environment()
         self.logger = SimLogger(os.getenv('SIM_LOG_PATH'))
+        self.nuvei_logger = NuveiLogger(os.getenv('NUVEI_LOG_PATH'))
+        self.globalPay = globalpay.GlobalPay(self.nuvei_logger, transaction_repository.TransactionRepository('HPPDB', self.nuvei_logger))
+        
 
-    def _generate_transaction(self, provider_distribution):
+    def _generate_transaction_payload(self, provider_distribution) -> str:
         transaction_types = list(provider_distribution.keys())
         probabilities = list(provider_distribution.values())
-        random_guid = uuid.uuid4()
-        return random.choices(transaction_types, probabilities)[0], random_guid
+        transaction = {
+            "amount": random.randint(1, 100),
+            "currency": random.choices(["CNY", "USD", "EUR"])[0],
+            "payment_method": random.choices(transaction_types, probabilities)[0]
+        }
+        
+        return json.dumps(transaction)
 
     def run_simulation(self):
         self.logger.log_info(f"{self.env.now:7.4f}: Starting simulation...")
@@ -32,26 +43,19 @@ class Environment:
         # Create transactions
         for transaction_no in range(self.simulation['transactions']['total_count']):
             #generate a trx as per distribution
-            transaction, guid = self._generate_transaction(self.simulation['transactions']['provider_distribution'])
-            self.logger.log_info(f"{self.env.now:7.4f} Init {transaction} - {guid}")
-            self.env.process(self.init_transactions(transaction, guid))
+            transaction_payload = self._generate_transaction_payload(self.simulation['transactions']['provider_distribution'])
+            self.logger.log_info(f"{self.env.now:7.4f} Init {transaction_payload}")
+            self.env.process(self.init_transactions(transaction_payload))
 
         # Run the simulation
         self.env.run()
 
     
-    def init_transactions(self, transaction, guid):
+    def init_transactions(self, transaction_payload):
         # Get the resource dependencies for the transaction
-        self.logger.log_info(f"{self.env.now:7.4f}: Init trx...")
-        dependencies = self.get_dependencies(transaction)
-        yield self.env.timeout(2000)
-        # Check if any of the dependencies have failed
-        if any(resource['name'] in self.resources and not self.resources[resource['name']]['status'] for resource in dependencies):
-            # Log the failure event
-            self.logger.log_info(f"{self.env.now:7.4f} Transaction {transaction} - {guid} failed due to dependency failure")
-        else:
-            # Process the transaction
-            self.logger.log_info(f"{self.env.now:7.4f} Transaction {transaction} - {guid} processed")
+        self.logger.log_info(f"{self.env.now:7.4f}: Processing transaction {transaction_payload}")
+        yield self.env.process(self.globalPay.post_req(transaction_payload))
+        #yield self.env.timeout(2000)
         
 
     def get_dependencies(self, resource_name):
@@ -77,7 +81,9 @@ class EnvironmentFactory:
                     'failure_min_duration': resource['failure_min_duration'],
                     'failure_max_duration': resource['failure_max_duration'],
                     'latency_min': resource['latency_min'],
-                    'latency_max': resource['latency_max']
+                    'latency_max': resource['latency_max'],
+                    'dependencies': resource['dependencies'],
+                    'max_threads': resource['max_threads'],
                 }
                 for resource in data['environment']['resources']
             }

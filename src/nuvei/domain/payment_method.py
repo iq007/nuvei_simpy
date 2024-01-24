@@ -2,5 +2,5 @@ from enum import Enum
 
 class PaymentMethod(Enum):
     PAYPAL = 'Paypal'
-    APLIPAY = 'Alipay'
+    ALIPAY = 'Alipay'
     PAYSAFECARD = 'Paysafecard'

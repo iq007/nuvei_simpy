@@ -16,15 +16,16 @@
                 "failure_max_duration": 60,
                 "latency_min": 0.01,
                 "latency_max": 3,
-                "capacity": 30,
-                "instances": 3
+                "max_threads": 30
             },
             {
                 "name": "Europay",
                 "type": "web-service",
                 "endpoint": "globalep1.smart2pay.com",
                 "dependencies": [
-                    "EuropayDB"
+                    "EuropayDB",
+                    "Network",
+                    "Server-2"
                 ],
                 "soft_dependencies": [
                     "Alipay",
@@ -35,31 +36,32 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 60,
                 "latency_min": 0.01,
-                "latency_max": 3
+                "latency_max": 3,
+                "max_threads": 30
             },
             {
                 "name": "HPPDB",
                 "type": "database",
                 "dependencies": [
-                    "Server-2"
                 ],
                 "failure_rate": 0.01,
                 "failure_min_duration": 1,
                 "failure_max_duration": 30,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 3000
             },
             {
                 "name": "EuropayDB",
                 "type": "database",
                 "dependencies": [
-                    "Server-2"
                 ],
                 "failure_rate": 0.03,
                 "failure_min_duration": 1,
                 "failure_max_duration": 30,
                 "latency_min": 0.01,
-                "latency_max": 0.20
+                "latency_max": 0.20,
+                "max_threads": 3000
             },
             {
                 "name": "Paypal",
@@ -69,7 +71,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 30,
                 "latency_min": 0.2,
-                "latency_max": 2
+                "latency_max": 1,
+                "max_threads": 30000
             },
             {
                 "name": "Alipay",
@@ -78,8 +81,9 @@
                 "failure_rate": 0.03,
                 "failure_min_duration": 1,
                 "failure_max_duration": 30,
-                "latency_min": 0.2,
-                "latency_max": 2
+                "latency_min": 0.4,
+                "latency_max": 2.5,
+                "max_threads": 30000
             },
             {
                 "name": "Paysafecard",
@@ -89,7 +93,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 30,
                 "latency_min": 0.2,
-                "latency_max": 2
+                "latency_max": 1,
+                "max_threads": 30000
             },
             {
                 "name": "Server-1",
@@ -99,17 +104,19 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 300,
                 "latency_min": 0.2,
-                "latency_max": 0.2
+                "latency_max": 0.2,
+                "max_threads": 30000
             },
             {
-                "name": "Server2",
+                "name": "Server-2",
                 "type": "server",
                 "dependencies": [],
                 "failure_rate": 0.001,
                 "failure_min_duration": 1,
                 "failure_max_duration": 300,
                 "latency_min": 0.2,
-                "latency_max": 0.2
+                "latency_max": 0.2,
+                "max_threads": 30000
             },
             {
                 "name": "Network",
@@ -119,9 +126,9 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 5,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 30000
             },
-            
             {
                 "name": "NOC Team",
                 "type": "human",
@@ -130,7 +137,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 5,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 2
             },
             {
                 "name": "DBA Team",
@@ -140,7 +148,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 5,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 3
             },
             {
                 "name": "Networking Team",
@@ -150,7 +159,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 5,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 2
             },
             {
                 "name": "Application Team",
@@ -160,7 +170,8 @@
                 "failure_min_duration": 1,
                 "failure_max_duration": 5,
                 "latency_min": 0.01,
-                "latency_max": 0.1
+                "latency_max": 0.1,
+                "max_threads": 1
             }
         ],
         "resource_types": [
@@ -175,31 +186,47 @@
             {
                 "type": "database",
                 "exceptions": [
-                        "Table lock"
+                        "Table lock",
+                        "Latch contention"
                 ]
             },
             {
                 "type": "server",
                 "exceptions": [
-                        "Server down"
+                ],
+                "alerts":[
+                    "CPU high",
+                    "Disk space low",
+                    "RAM usage high"
                 ]
+
             },
             {
                 "type": "resource",
-                "exceptions": [
-                        "Network down"
+                "exceptions": [],
+                "alerts": [
+                        "Network down",
+                        "Packet loss"
                 ]
             },
             {
-                "type": "monitoring",
+                "type": "provider",
                 "exceptions": [
-                        "Dynatrace down"
+                        "TimeoutException: Cannot connect to provider"
+                ]
+            },
+            {
+                "type": "network",
+                "exceptions": [
+                        "NetworkException: SSL handshake failed",
+                        "TimeoutException: RabbitMQ connection timeout"
                 ]
             },
             {"type": "human",
-                "exceptions": [
+                "alerts": [
                         "Does not answer"
-                ]
+                ],
+                "exceptions": []
             }
     ]},
     "simulation": {
@@ -222,7 +249,9 @@
                     "Paypal": 0.3,
                     "Paysafecard": 0.1
                 },
-                "total_count": 20000
+                "total_count": 20000,
+                "ramp_up_time": 60,
+                "simulated_delay_between_two_transactions": 0.02
             }
         
     }
