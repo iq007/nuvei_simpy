@@ -11,15 +11,16 @@ class GlobalPay(WebService):
         super().__init__('GlobalPay', logger)
         self.transaction_repository = transaction_repository
 
-    def _validate_transaction(self, transaction: Transaction):
-        self.logger.log_info(self.service_name, '_validate_transaction', 'N/A', 'Transaction validated')
-        return self
-
     def _deserialize_transaction(self, json_data: str):
         transaction = TransactionDeserializer.from_json(json_data)
         self.logger.log_info(self.service_name, '_deserialize_transaction', 'N/A', f'Transaction deserialized: {transaction}',)
         return transaction
+   
+    def _validate_transaction(self, transaction: Transaction):
+        self.logger.log_info(self.service_name, '_validate_transaction', 'N/A', 'Transaction validated')
+        return self
 
+   
     def _save_transaction_to_db(self, transaction):
         self.transaction_repository.save_transaction(transaction)
         self.logger.log_info(self.service_name, '_save_transaction_to_db', transaction.id, 'Transaction saved in DB',)
@@ -35,7 +36,9 @@ class GlobalPay(WebService):
         ._save_transaction_to_db(transaction) \
         ._send_transaction_to_provider(transaction.payment_method, transaction)
 
-    def post_req(self, json_string):
+    def post_req(self, json_string, env):
         # Create a Transaction object (replace with your actual Transaction object
         self.logger.log_info(self.service_name, '_validate_transaction', 'N/A', f'Post recevied: {json_string}')
         self._process_transaction(json_string)
+        yield env.timeout(1000)
+  

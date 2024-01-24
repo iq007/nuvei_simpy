@@ -249,7 +249,7 @@
                     "Paypal": 0.3,
                     "Paysafecard": 0.1
                 },
-                "total_count": 20000,
+                "total_count": 20,
                 "ramp_up_time": 60,
                 "simulated_delay_between_two_transactions": 0.02
             }
