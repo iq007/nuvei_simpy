@@ -1,9 +1,5 @@
 import simpy
-import random
-import logging
 import json
-import random
-import uuid
 from env_simulator.utils.sim_logger import SimLogger
 from dotenv import load_dotenv
 import os
@@ -11,6 +7,8 @@ import nuvei.services.globalpay as globalpay
 import nuvei.infrastructure.transaction_repository as transaction_repository
 from nuvei.utils.nuvei_logger import NuveiLogger
 from env_simulator.transaction_generator import TransactionGenerator
+from env_simulator.resource_decorator import ResourceDecorator
+
 
 
 load_dotenv()  # take environment variables from .env.
@@ -18,9 +16,8 @@ load_dotenv()  # take environment variables from .env.
 
 # Define the environment class
 class Environment:
-    def __init__(self, resources, resource_types, simulation):
+    def __init__(self, resources, simulation):
         self.resources = resources
-        self.resource_types = resource_types
         self.simulation = simulation
         self.env = simpy.Environment()
         self.nuvei_logger = NuveiLogger(os.getenv('NUVEI_LOG_PATH'))
@@ -45,7 +42,8 @@ class Environment:
     def init_transactions(self, transaction_payload):
         # Get the resource dependencies for the transaction
         self.logger.log_info(f"{self.env.now:7.4f}: Processing transaction {transaction_payload}")
-        yield self.env.process(self.globalPay.post_req(transaction_payload, self.env))
+        for i in self.globalPay.post_req(transaction_payload):
+            yield i
         #yield self.env.timeout(2000)
         
 
@@ -65,28 +63,43 @@ class EnvironmentFactory:
     def create_environment(json_file_path: str) -> Environment:
         with open(json_file_path) as file:
             data = json.load(file)
-            resources = {
-                resource['name']: {
-                    'status': True,
-                    'failure_rate': resource['failure_rate'],
-                    'failure_min_duration': resource['failure_min_duration'],
-                    'failure_max_duration': resource['failure_max_duration'],
-                    'latency_min': resource['latency_min'],
-                    'latency_max': resource['latency_max'],
-                    'dependencies': resource['dependencies'],
-                    'max_threads': resource['max_threads'],
+            resources = [
+                {
+                    'name': resource.get('name'),
+                    'entry_function': resource.get('entry_function'),
+                    'failure_rate': resource.get('failure_rate'),
+                    'latency_min': resource.get('latency_min'),
+                    'latency_max': resource.get('latency_max'),
+                    'dependencies': resource.get('dependencies'),
+                    'max_threads': resource.get('max_threads'),
+                    'faulty_methods': resource.get('faulty_methods'),
+                    'latency_methods': resource.get('latency_methods')
                 }
-                for resource in data['environment']['resources']
-            }
+                for resource in data['environment']['resources']]
+            
 
-            resource_types = {
-                resource_type['type']: resource_type['exceptions']
-                for resource_type in data['environment']['resource_types']
-            }
+            simulation = data['environment']['simulation']
 
-            simulation = data['simulation']
 
-            return Environment(resources, resource_types, simulation)
+                    
+            _env = Environment(resources, simulation)
+
+            for resource in resources:
+                #instantiate all resources needed - for now only GlobalPay
+                if resource['name'] == 'GlobalApi':
+                    ResourceDecorator(_env.globalPay,
+                                  _env.env, 
+                                  _env.nuvei_logger, 
+                                  resource['entry_function'],
+                                  resource['faulty_methods'],
+                                  resource['latency_methods'],
+                                  resource['failure_rate'],
+                                  resource['latency_min'],
+                                  resource['latency_max'])()
+                else:
+                    continue
+
+            return _env
 
 
 

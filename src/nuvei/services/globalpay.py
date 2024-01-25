@@ -3,6 +3,7 @@ from nuvei.utils.nuvei_logger import NuveiLogger
 from nuvei.utils.transaction_deserializer import TransactionDeserializer
 from nuvei.domain.transaction import Transaction
 from nuvei.infrastructure.transaction_repository import TransactionRepository
+from simpy import Environment
 import uuid
 
 
@@ -17,9 +18,12 @@ class GlobalPay(WebService):
         return transaction
    
     def _validate_transaction(self, transaction: Transaction):
-        self.logger.log_info(self.service_name, '_validate_transaction', 'N/A', 'Transaction validated')
+        self.logger.log_info(self.service_name, '_validate_transaction', transaction.id, 'Transaction validated')
         return self
-
+    
+    def _some_business_logic(self, transaction: Transaction):
+        self.logger.log_info(self.service_name, '_some_business_logic', transaction.id, 'Business logic executed')
+        return self
    
     def _save_transaction_to_db(self, transaction):
         self.transaction_repository.save_transaction(transaction)
@@ -32,13 +36,13 @@ class GlobalPay(WebService):
 
     def _process_transaction(self, json_data: dict):
         transaction = self._deserialize_transaction(json_data)
-        self._validate_transaction(transaction) \
-        ._save_transaction_to_db(transaction) \
-        ._send_transaction_to_provider(transaction.payment_method, transaction)
+        self._validate_transaction(transaction)
+        self._some_business_logic(transaction)
+        self._save_transaction_to_db(transaction)
+        self._send_transaction_to_provider(transaction.payment_method, transaction)
 
-    def post_req(self, json_string, env):
+    def post_req(self, json_string):
         # Create a Transaction object (replace with your actual Transaction object
         self.logger.log_info(self.service_name, '_validate_transaction', 'N/A', f'Post recevied: {json_string}')
         self._process_transaction(json_string)
-        yield env.timeout(1000)
   

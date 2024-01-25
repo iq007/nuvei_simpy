@@ -11,9 +11,23 @@
                     "Network",
                     "Server-1"
                 ],
-                "failure_rate": 0.01,
-                "failure_min_duration": 1,
-                "failure_max_duration": 60,
+                "faulty_methods":[
+                    {
+                        "name": "_some_business_logic",
+                        "exception":{
+                            "type": "ZeroDivisionError",
+                            "description": "division by zero"
+                        }
+
+                    }
+                ],
+                "latency_methods":[
+                    {
+                        "name": "_some_business_logic"
+                    }   
+                ],
+                "entry_function": "post_req",
+                "failure_rate": 0.5,
                 "latency_min": 0.01,
                 "latency_max": 3,
                 "max_threads": 30
@@ -32,9 +46,9 @@
                     "Paypal",
                     "Paysafecard"
                 ],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.01,
-                "failure_min_duration": 1,
-                "failure_max_duration": 60,
                 "latency_min": 0.01,
                 "latency_max": 3,
                 "max_threads": 30
@@ -44,9 +58,9 @@
                 "type": "database",
                 "dependencies": [
                 ],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.01,
-                "failure_min_duration": 1,
-                "failure_max_duration": 30,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 3000
@@ -54,11 +68,10 @@
             {
                 "name": "EuropayDB",
                 "type": "database",
-                "dependencies": [
-                ],
+                "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.03,
-                "failure_min_duration": 1,
-                "failure_max_duration": 30,
                 "latency_min": 0.01,
                 "latency_max": 0.20,
                 "max_threads": 3000
@@ -67,9 +80,9 @@
                 "name": "Paypal",
                 "type": "provider",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.03,
-                "failure_min_duration": 1,
-                "failure_max_duration": 30,
                 "latency_min": 0.2,
                 "latency_max": 1,
                 "max_threads": 30000
@@ -78,9 +91,9 @@
                 "name": "Alipay",
                 "type": "provider",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.03,
-                "failure_min_duration": 1,
-                "failure_max_duration": 30,
                 "latency_min": 0.4,
                 "latency_max": 2.5,
                 "max_threads": 30000
@@ -89,9 +102,9 @@
                 "name": "Paysafecard",
                 "type": "provider",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.03,
-                "failure_min_duration": 1,
-                "failure_max_duration": 30,
                 "latency_min": 0.2,
                 "latency_max": 1,
                 "max_threads": 30000
@@ -100,9 +113,9 @@
                 "name": "Server-1",
                 "type": "server",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 300,
                 "latency_min": 0.2,
                 "latency_max": 0.2,
                 "max_threads": 30000
@@ -111,9 +124,9 @@
                 "name": "Server-2",
                 "type": "server",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 300,
                 "latency_min": 0.2,
                 "latency_max": 0.2,
                 "max_threads": 30000
@@ -122,9 +135,9 @@
                 "name": "Network",
                 "type": "network",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 5,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 30000
@@ -133,9 +146,9 @@
                 "name": "NOC Team",
                 "type": "human",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 5,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 2
@@ -144,9 +157,9 @@
                 "name": "DBA Team",
                 "type": "human",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 5,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 3
@@ -155,9 +168,9 @@
                 "name": "Networking Team",
                 "type": "human",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 5,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 2
@@ -166,69 +179,14 @@
                 "name": "Application Team",
                 "type": "human",
                 "dependencies": [],
+                "faulty_methods": [],
+                "latency_methods":[],
                 "failure_rate": 0.001,
-                "failure_min_duration": 1,
-                "failure_max_duration": 5,
                 "latency_min": 0.01,
                 "latency_max": 0.1,
                 "max_threads": 1
             }
         ],
-        "resource_types": [
-            {
-                "type": "web-service",
-                "exceptions": [
-                        "SQLException: Cannot connect to DB",
-                        "NetworkException: SSL handshake failed",
-                        "TimeoutException: RabbitMQ connection timeout"
-                ]
-            },
-            {
-                "type": "database",
-                "exceptions": [
-                        "Table lock",
-                        "Latch contention"
-                ]
-            },
-            {
-                "type": "server",
-                "exceptions": [
-                ],
-                "alerts":[
-                    "CPU high",
-                    "Disk space low",
-                    "RAM usage high"
-                ]
-
-            },
-            {
-                "type": "resource",
-                "exceptions": [],
-                "alerts": [
-                        "Network down",
-                        "Packet loss"
-                ]
-            },
-            {
-                "type": "provider",
-                "exceptions": [
-                        "TimeoutException: Cannot connect to provider"
-                ]
-            },
-            {
-                "type": "network",
-                "exceptions": [
-                        "NetworkException: SSL handshake failed",
-                        "TimeoutException: RabbitMQ connection timeout"
-                ]
-            },
-            {"type": "human",
-                "alerts": [
-                        "Does not answer"
-                ],
-                "exceptions": []
-            }
-    ]},
     "simulation": {
         "monitors": [
             {
@@ -253,6 +211,7 @@
                 "ramp_up_time": 60,
                 "simulated_delay_between_two_transactions": 0.02
             }
+        }
         
     }
 }
