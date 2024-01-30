@@ -18,11 +18,11 @@ class ResourceDecorator:
         self.resource = resource  # the decorated resource
 
         
-    def _add_exceptions(self, func):
+    def _add_exceptions(self, func, exception):
         @functools.wraps(func) 
         def wrapper(*args, **kwargs):
             if random.random() <= self.failure_rate:
-                self.logger.log_error(self.resource.service_name, func.__name__, 'N/A', f'Some exception')
+                self.logger.log_error(self.resource.service_name, func.__name__, 'N/A', f'{exception.get("type")}: {exception.get("description")}')
                 #yield self.env.timeout(1)
                 return None
             else:
@@ -44,7 +44,7 @@ class ResourceDecorator:
         for method in self.faulty_methods:
             method_name = method.get('name')
             exception = method.get('exception')
-            decorated_method = self._add_exceptions(getattr(self.resource, method_name))
+            decorated_method = self._add_exceptions(getattr(self.resource, method_name), exception)
             setattr(self.resource, method_name, decorated_method)
         
         method_name = self.entry_function
