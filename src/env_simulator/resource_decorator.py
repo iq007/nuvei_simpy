@@ -24,7 +24,7 @@ class ResourceDecorator:
             if random.random() <= self.failure_rate:
                 self.logger.log_error(self.resource.service_name, func.__name__, 'N/A', f'{exception.get("type")}: {exception.get("description")}')
                 #yield self.env.timeout(1)
-                return None
+                return False
             else:
                 self.logger.log_info(self.resource.service_name, func.__name__, 'N/A', 'No errors')  
                 #yield self.env.timeout(1)
@@ -36,7 +36,7 @@ class ResourceDecorator:
         @functools.wraps(func) 
         def wrapper(*args, **kwargs):
             self.logger.log_info(self.resource.service_name, func.__name__, 'N/A', 'Entry function called')
-            func(*args, **kwargs)
+            return func(*args, **kwargs)
             yield self.env.timeout(1000)
         return wrapper
     
