@@ -21,11 +21,7 @@
 
                     }
                 ],
-                "latency_methods":[
-                    {
-                        "name": "_some_business_logic"
-                    }   
-                ],
+                "latency_methods":[],
                 "entry_function": "post_req",
                 "failure_rate": 0.5,
                 "latency_min": 0.01,

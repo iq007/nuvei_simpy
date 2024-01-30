@@ -27,25 +27,17 @@ class Environment:
 
     def run_simulation(self):
         self.logger.log_info(f"{self.env.now:7.4f}: Starting simulation...")
-        self.logger.log_info(f"{self.env.now:7.4f}: Processign {self.simulation['transactions']['total_count']} transactions...")
-        # Create transactions
+        self.logger.log_info(f"{self.env.now:7.4f}: Warming up to process {self.simulation['transactions']['total_count']} transactions...")
+        # Create transactions and prepare the process
         for _ in range(self.simulation['transactions']['total_count']):
             #generate a trx as per distribution
             transaction_payload = self.transaction_generator.generate_transaction_payload()
-            self.logger.log_info(f"{self.env.now:7.4f} Init {transaction_payload}")
-            self.env.process(self.init_transactions(transaction_payload))
+            self.logger.log_info(f"{self.env.now:7.4f} Preparing transaction processing from payload {transaction_payload}")
+            self.env.process(self.globalPay.post_req(transaction_payload))
 
         # Run the simulation
         self.env.run()
 
-    
-    def init_transactions(self, transaction_payload):
-        # Get the resource dependencies for the transaction
-        self.logger.log_info(f"{self.env.now:7.4f}: Processing transaction {transaction_payload}")
-        for i in self.globalPay.post_req(transaction_payload):
-            yield i
-        #yield self.env.timeout(2000)
-        
 
     def get_dependencies(self, resource_name):
         # Get the dependencies for a given resource
@@ -79,8 +71,6 @@ class EnvironmentFactory:
             
 
             simulation = data['environment']['simulation']
-
-
                     
             _env = Environment(resources, simulation)
 
